@@ -1,0 +1,13 @@
+<div class="container">
+    <mat-paginator [length]="100"
+        [pageSize]="pageSize"
+        [pageIndex]="pageIndex"
+        (page)="getBeers($event)"
+        aria-label="Select page">
+    </mat-paginator>
+
+
+    <div class="beers-container" *ngIf="beers$ | async as beers">
+        <app-beer-card *ngFor="let beer of beers" [beer]="beer"></app-beer-card>
+    </div>
+</div>

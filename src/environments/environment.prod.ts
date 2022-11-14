@@ -1,3 +1,5 @@
 export const environment = {
-  production: true
+  production: true,
+  beerHost: 'https://api.punkapi.com/v2',
+  beersPerPage: 12,
 };

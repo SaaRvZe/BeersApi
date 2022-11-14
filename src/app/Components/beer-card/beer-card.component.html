@@ -1,0 +1,15 @@
+<mat-card class="card">
+    <mat-card-header>
+        <!-- <div mat-card-avatar class=""></div> -->
+        <mat-card-title>{{beer.name}}</mat-card-title>
+        <mat-card-subtitle>{{beer.abv}}%</mat-card-subtitle>
+        <span class="spacer"></span>
+        <mat-icon>favorites</mat-icon>
+    </mat-card-header>
+    <img mat-card-image [src]="beer.image_url" >
+    <mat-card-content *ngIf="isModal">
+        <p>
+        {{beer.description}}
+        </p>
+    </mat-card-content>
+</mat-card>

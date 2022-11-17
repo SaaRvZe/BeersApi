@@ -1,3 +1,15 @@
+:host.modal {
+    .card {
+        overflow: auto;
+        max-width: 600px;
+        max-height: 600px;
+
+        img {
+            max-height: 200px;
+        }
+    }
+}
+
 .card {
     height: calc(100% - 32px);
     max-width: 300px;

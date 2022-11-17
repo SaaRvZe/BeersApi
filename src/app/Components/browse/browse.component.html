@@ -1,13 +1,24 @@
 <div class="container">
+    <div class="search">
+        <mat-form-field>
+            <mat-label>Foods</mat-label>
+            <input matInput [formControl]="foodControl" placeholder="Ex: Pizza">        
+        </mat-form-field>
+        <button mat-button (click)="onSearch()">Search!</button>
+    </div>
+
     <mat-paginator [length]="100"
         [pageSize]="pageSize"
         [pageIndex]="pageIndex"
-        (page)="getBeers($event)"
+        (page)="onPageChange($event)"
         aria-label="Select page">
     </mat-paginator>
 
 
     <div class="beers-container" *ngIf="beers$ | async as beers">
-        <app-beer-card *ngFor="let beer of beers" [beer]="beer"></app-beer-card>
+        <app-beer-card *ngFor="let beer of beers" [beer]="beer"
+        class="pointer"
+            (click)="openDialog(beer)"
+        ></app-beer-card>
     </div>
 </div>

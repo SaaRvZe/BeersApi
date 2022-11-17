@@ -1,5 +1,11 @@
-.beers-container {
-    display: grid;
-    gap: 20px;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+    .beers-container {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+    }
 }

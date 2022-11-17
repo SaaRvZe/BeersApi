@@ -1,0 +1,9 @@
+<app-beer-card [beer]="beer" class="modal">
+    <p>
+        {{beer.description}}
+    </p>
+    <div>Good with:</div>
+    <ul>
+        <li *ngFor="let food of beer.food_pairing">{{food}}</li>
+    </ul>
+</app-beer-card>

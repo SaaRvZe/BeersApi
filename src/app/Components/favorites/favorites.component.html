@@ -1,5 +1,5 @@
+<button mat-button (click)="removeAllFavorites()">Remove All</button>
 <div class="beers-container" *ngIf="beers$ | async as beers">
-    <button mat-button (click)="removeAllFavorites()">Remove All</button>
     <app-beer-card *ngFor="let beer of beers | keyvalue" [beer]="beer.value"
     class="pointer"
     (click)="openDialog(beer.value)"

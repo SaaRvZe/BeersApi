@@ -2,10 +2,11 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { BehaviorSubject, map, Observable, of, tap } from 'rxjs';
+import { BehaviorSubject, map, Observable, of, tap, catchError } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { ConfirmModalComponent } from '../Components/confirm-modal/confirm-modal.component';
+import { ConfirmModalComponent } from '../Components/Shared/confirm-modal/confirm-modal.component';
 import { Beer } from '../Model/beer';
+import { UtilService } from './util.service';
 
 
 
@@ -20,8 +21,10 @@ export class BeerService {
 
   favoritesLS = 'favorites'; // for favorites local storage
   browseLS = 'browse'; // for search result local storage
-  lastPageBrowseKeyLS = 'lastPage'; // save last page for refresh
-  constructor(private http: HttpClient, public dialog: MatDialog, private _snackBar: MatSnackBar) {
+  lastPageLS = 'lastPage'; // save last page for refresh
+  lastFoodLS = 'lastFood'; // save last food for refresh
+  constructor(private http: HttpClient, public dialog: MatDialog, 
+    private _snackBar: MatSnackBar, private utilService: UtilService) {
     this.initCache();    
   }
 
@@ -36,36 +39,46 @@ export class BeerService {
       page: page
     }
 
-    const browseKey = foodPairing + page;
+    const browseKey = foodPairing + page; // create the Map key to find cached results
     if(this.browse.get(browseKey)) {
       console.log('from cache');
-      
+      this.setBrowseCache(page.toString(), foodPairing);
       return of(this.browse.get(browseKey) ?? []);
     }
 
-    return this.http.get<Beer[]>(`${environment.beerHost}/beers`, {params: queryParams}).pipe(tap(beers => {
+    return this.http.get<Beer[]>(`${environment.beerHost}/beers`, {params: queryParams}).pipe(tap((beers: Beer[]) => {
       this.browse.set(browseKey, beers);
-      localStorage.setItem(this.browseLS, this.stringifyMap(this.browse));
-      localStorage.setItem(this.lastPageBrowseKeyLS, browseKey);
+      localStorage.setItem(this.browseLS, this.utilService.stringifyMap(this.browse));
+      this.setBrowseCache(page.toString(), foodPairing);
+
+    }), catchError((err: any) => {
+      // Would use interceptor or handle in more specific way
+      this._snackBar.open('An error occured please try again!', 'Ok!');
+      return of([])
     }));
   }
 
+  setBrowseCache(lastPage: string, lastFood: string) {
+    localStorage.setItem(this.lastPageLS, lastPage);
+    localStorage.setItem(this.lastFoodLS, lastFood);
+  }
 
   isFavorite(beerId: number): Observable<boolean> {
     return this.favorites$.pipe(map((fav: Map<number, Beer>) => !!fav.get(beerId)))
   }
 
   toggleFavorites(beer: Beer) {
+    const oldValue = structuredClone(this.favorites$.value);
+
     // deletes from favorites, if it didnt exist then add to favorites
     if (!this.favorites$.value.delete(beer.id)) {
       this.favorites$.value.set(beer.id, beer);      
-    } else {
-      const oldValue = structuredClone(this.favorites$.value);
+    } else {   
       this.promptUndoRemoveFavorite(oldValue);
     }
     
     this.favorites$.next(this.favorites$.value);
-    localStorage.setItem(this.favoritesLS, this.stringifyMap(this.favorites$.value));
+    localStorage.setItem(this.favoritesLS, this.utilService.stringifyMap(this.favorites$.value));
   }
 
   removeAllFavorites() {
@@ -74,11 +87,11 @@ export class BeerService {
       data: 'Are you sure you wanna remove all favorite beers?',
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result: boolean) => {
       if(result === true) {
         const oldValue = structuredClone(this.favorites$.value);
         this.favorites$.next(new Map<number, Beer>())
-        localStorage.setItem(this.favoritesLS, this.stringifyMap(this.favorites$.value));
+        localStorage.setItem(this.favoritesLS, this.utilService.stringifyMap(this.favorites$.value));
         this.promptUndoRemoveFavorite(oldValue);
       }
     });
@@ -89,7 +102,7 @@ export class BeerService {
     const snackRef = this._snackBar.open('Successfuly deleted :)', 'Undo');
     snackRef.onAction().subscribe(() => {
       this.favorites$.next(oldValue);
-      localStorage.setItem(this.favoritesLS, this.stringifyMap(this.favorites$.value));
+      localStorage.setItem(this.favoritesLS, this.utilService.stringifyMap(this.favorites$.value));
     })
   }
 
@@ -97,48 +110,14 @@ export class BeerService {
   // set values from local storage
   initCache() {
     if( this.favoritesLS in localStorage) {
-      const favorites = this.parseMapString(localStorage.getItem(this.favoritesLS) ?? '{}');
+      const favorites = this.utilService.parseMapString(localStorage.getItem(this.favoritesLS) ?? '{}');
       if(favorites instanceof Map) {
         this.favorites$.next(favorites);
       }
     }
 
     if(localStorage.getItem(this.browseLS)) {
-      this.browse = this.parseMapString(localStorage.getItem(this.browseLS) ?? '{}')
+      this.browse = this.utilService.parseMapString(localStorage.getItem(this.browseLS) ?? '{}')
     }
   }
-
-
-
-
-  stringifyMap(map: Map<any, any>): string {
-    return JSON.stringify(map, this.replacer)
-  }
-
-  parseMapString(mapString: string): Map<any, any> {
-    return JSON.parse(mapString, this.reviver)
-  }
-
-  ///// support Map JSON.stringify
-  replacer(key: any, value: any) {
-    if(value instanceof Map) {
-      return {
-        dataType: 'Map',
-        value: Array.from(value.entries()), // or with spread: value: [...value]
-      };
-    } else {
-      return value;
-    }
-  }
-
-  ///// Suppoer Map JSON.parse
-  reviver(key: any, value: any) {
-    if(typeof value === 'object' && value !== null) {
-      if (value.dataType === 'Map') {
-        return new Map(value.value);
-      }
-    }
-    return value;
-  }
-
 }

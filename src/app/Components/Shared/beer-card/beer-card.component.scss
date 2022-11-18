@@ -1,5 +1,6 @@
 :host.modal {
     .card {
+        margin: 0 auto;
         overflow: auto;
         max-width: 600px;
         max-height: 600px;
@@ -16,13 +17,14 @@
     max-height: 300px;
     overflow: hidden;
     
-    .mat-card-header-text {
-        display: flex;
+
+    .mat-icon {
+        min-width: 24px;
     }
 
     img{
         object-fit: contain;
         width: 100%;
-        height: 80%;
+        height: calc(100% - 70px);;
     }
 }

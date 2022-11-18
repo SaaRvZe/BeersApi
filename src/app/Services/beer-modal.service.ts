@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { BeerModalComponent } from '../Components/beer-modal/beer-modal.component';
+import { BeerModalComponent } from '../Components/Shared/beer-modal/beer-modal.component';
 import { Beer } from '../Model/beer';
 
 @Injectable({

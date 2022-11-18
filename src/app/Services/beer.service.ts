@@ -83,7 +83,8 @@ export class BeerService {
 
   removeAllFavorites() {
     const dialogRef = this.dialog.open(ConfirmModalComponent, {
-      width: '250px',
+      width: '300px',
+      height: '100px',
       data: 'Are you sure you wanna remove all favorite beers?',
     });
 
